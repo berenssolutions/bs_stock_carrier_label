@@ -1,26 +1,19 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Versandetiketten Drucken',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.1.0',
     'category': 'Inventory/Reporting',
-    'summary': 'Carrier-Versandetiketten (DHL etc.) im Drucken-Menü des Lieferauftrags mit IoT-Drucker-Unterstützung',
+    'summary': 'Carrier-Versandetiketten (DHL etc.) im Drucken-Menü mit IoT-Drucker-Unterstützung',
     'description': """
 Versandetiketten Drucken
 ========================
 
-Dieses Modul ergänzt den Lieferauftrag (stock.picking) um einen
-"Versandetiketten"-Eintrag im Drucken-Untermenü (Zahnrad → Drucken).
+Fügt "Versandetiketten" ins Drucken-Menü des Lieferauftrags ein.
 
-Features:
-- Erscheint im selben Drucken-Menü wie "Lieferschein" und "Kommissioniervorgänge"
-- Vollständig IoT-Drucker-kompatibel (Drucker-Auswahl wie bei allen anderen Reports)
-- Erkennt automatisch alle Carrier-Label-Anhänge am Picking (DHL, UPS, DPD, GLS, ...)
-- Unterstützt PDF- und Bild-Anhänge
-- Klare Fehlermeldung wenn noch kein Versandetikett erstellt wurde
-
-Voraussetzung:
-- Das DHL-/Carrier-Modul muss installiert sein und Labels am Picking anhängen
-- Für IoT-Druck: IoT Box muss konfiguriert sein
+- Zahnrad → Drucken → Versandetiketten (IoT-kompatibel, wie Lieferschein)
+- Zahnrad → Aktionen → Versandetiketten (PDF-Download) als Direktlink
+- Nutzt pypdf um DHL-PDFs direkt durchzureichen (kein wkhtmltopdf-Rendering)
+- Unterstützt mehrere Labels pro Picking (werden zusammengeführt)
     """,
     'author': 'Lennart Berens, Berens Solutions',
     'website': 'https://berenssolutions.de',
@@ -31,8 +24,8 @@ Voraussetzung:
     ],
     'data': [
         'security/ir.model.access.csv',
-        'report/carrier_label_report.xml',
         'report/carrier_label_action.xml',
+        'report/carrier_label_report.xml',
     ],
     'installable': True,
     'application': False,

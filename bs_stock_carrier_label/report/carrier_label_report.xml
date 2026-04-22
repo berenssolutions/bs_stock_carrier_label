@@ -2,111 +2,42 @@
 <odoo>
     <!--
     ============================================================
-    QWeb-Report-Template: Versandetiketten
+    QWeb-Template: Versandetiketten
     ============================================================
-    Rendert alle Carrier-Label-Anhänge eines Lieferauftrags.
+    Dieses Template rendert KEIN eigenes Layout — es nutzt
+    postprocess_pdf_report (override in models) um das echte
+    Carrier-PDF via pypdf einzuschleusen.
 
-    Technischer Hintergrund:
-    - wkhtmltopdf (Odoo's PDF-Renderer) kann keine PDFs in PDFs einbetten
-    - PDFs werden daher über den /web/content-Endpunkt als eingebettetes
-      <object>-Element gerendert, mit <img>-Fallback
-    - Bild-Anhänge (PNG/JPEG) werden direkt als <img> eingebettet
-    - Jedes Label erhält eine eigene Druckseite (page-break-after)
-    - Das Papierformat "label" sorgt für randlose Darstellung
-
-    IoT-Drucker:
-    - Dieser Report ist ein standard ir.actions.report (qweb-pdf)
-    - Damit ist er vollständig IoT-Drucker-kompatibel
-    - Beim ersten Druck erscheint der "Drucker auswählen"-Dialog
-    - Die Drucker-Verknüpfung wird im Browser-Cache gespeichert
+    Für den Nutzer sieht es aus wie jeder andere Report:
+    - Erscheint unter Zahnrad → Drucken → "Versandetiketten"
+    - IoT-Drucker wählbar (Einstellungen → Technisch → Reports)
+    - Verhält sich identisch zu "Lieferschein"
     ============================================================
     -->
     <template id="report_carrier_label">
         <t t-call="web.html_container">
+            <!--
+                Minimales Placeholder-HTML.
+                Der eigentliche PDF-Inhalt wird durch den
+                postprocess_pdf_report-Override ersetzt.
+            -->
             <t t-foreach="docs" t-as="picking">
-                <t t-set="attachments" t-value="picking.get_carrier_label_attachments()"/>
-                <t t-foreach="attachments" t-as="attachment">
-                    <!--
-                        Jedes Label auf einer eigenen Seite.
-                        page-break-after: always → neue Seite nach jedem Label
-                        außer nach dem letzten (avoid verhindert Leerseite am Ende)
-                    -->
-                    <div class="page" t-attf-style="
-                        margin: 0;
-                        padding: 0;
-                        page-break-after: {{ 'always' if not attachment_last else 'avoid' }};
-                    ">
-                        <!-- Kopfzeile mit Picking-Name und Label-Dateiname (dezent) -->
-                        <div style="
-                            font-family: Arial, sans-serif;
-                            font-size: 9px;
-                            color: #999;
-                            padding: 4px 8px 2px 8px;
-                            border-bottom: 1px solid #eee;
-                            margin-bottom: 4px;
-                        ">
-                            <span t-esc="picking.name"/> ·
-                            <span t-esc="attachment.name"/>
-                        </div>
-
-                        <!-- Label-Inhalt je nach Mimetype -->
-                        <t t-if="attachment.mimetype == 'application/pdf'">
-                            <!--
-                                PDF-Anhang:
-                                wkhtmltopdf unterstützt <embed> und <object> für PDFs.
-                                Wir nutzen <object> mit <img>-Fallback.
-                                Die URL /web/content/<id> liefert den rohen Binärinhalt.
-                                Höhe auf A4 minus Kopfzeile gesetzt; für Thermal-Labels
-                                ggf. im IoT-Drucker-Setup das Papierformat anpassen.
-                            -->
-                            <object
-                                t-attf-data="/web/content/{{ attachment.id }}?download=false"
-                                type="application/pdf"
-                                style="width: 100%; height: 270mm; display: block; border: none;"
-                            >
-                                <!-- Fallback falls wkhtmltopdf kein PDF-embed unterstützt -->
-                                <p style="
-                                    font-family: Arial, sans-serif;
-                                    font-size: 11px;
-                                    color: #c00;
-                                    padding: 16px;
-                                    text-align: center;
-                                ">
-                                    Das Versandetikett "<t t-esc="attachment.name"/>"
-                                    konnte nicht direkt eingebettet werden.<br/>
-                                    Bitte öffne es direkt über den Chatter des Lieferauftrags.
-                                </p>
-                            </object>
-                        </t>
-
-                        <t t-elif="attachment.mimetype in ['image/png', 'image/jpeg', 'image/gif', 'image/tiff']">
-                            <!--
-                                Bild-Anhang (z.B. PNG-Label von manchen Carriern):
-                                Direkt als <img> einbetten, volle Breite, auto-Höhe.
-                            -->
-                            <img
-                                t-attf-src="/web/image/{{ attachment.id }}"
-                                style="
-                                    width: 100%;
-                                    height: auto;
-                                    display: block;
-                                    max-width: 100%;
-                                "
-                                t-att-alt="attachment.name"
-                            />
-                        </t>
-                    </div>
-                </t>
+                <div class="page">
+                    <p style="font-family: Arial; font-size: 10px; color: #aaa;">
+                        Versandetikett wird geladen...
+                    </p>
+                </div>
             </t>
         </t>
     </template>
 
     <!--
-    ============================================================
-    Report-Record: Verknüpft Template mit ir.actions.report
-    ============================================================
+    ir.actions.report:
+    - binding_type="report"  → erscheint unter "Drucken" (nicht "Aktion")
+    - binding_model_id       → gebunden an stock.picking
+    - binding_view_types     → nur im Formular
     -->
-    <record id="report_carrier_label_document" model="ir.actions.report">
+    <record id="action_report_carrier_label" model="ir.actions.report">
         <field name="name">Versandetiketten</field>
         <field name="model">stock.picking</field>
         <field name="report_type">qweb-pdf</field>
@@ -115,13 +46,9 @@
         <field name="print_report_name">
             'Versandetikett - %s' % (object.name or '')
         </field>
-        <!--
-            binding_model_id → Report erscheint im "Drucken"-Untermenü
-            binding_type=report → landet unter "Drucken" (nicht unter "Aktion")
-            binding_view_types=form → nur im Formular, nicht in der Listenansicht
-        -->
         <field name="binding_model_id" ref="stock.model_stock_picking"/>
         <field name="binding_type">report</field>
         <field name="binding_view_types">form</field>
+        <field name="paperformat_id" ref="paperformat_carrier_label"/>
     </record>
 </odoo>
