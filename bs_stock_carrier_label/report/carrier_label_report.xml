@@ -1,42 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!--
-    ============================================================
-    QWeb-Template: Versandetiketten
-    ============================================================
-    Dieses Template rendert KEIN eigenes Layout — es nutzt
-    postprocess_pdf_report (override in models) um das echte
-    Carrier-PDF via pypdf einzuschleusen.
-
-    Für den Nutzer sieht es aus wie jeder andere Report:
-    - Erscheint unter Zahnrad → Drucken → "Versandetiketten"
-    - IoT-Drucker wählbar (Einstellungen → Technisch → Reports)
-    - Verhält sich identisch zu "Lieferschein"
-    ============================================================
+    Minimales QWeb-Template — wird durch den _render_qweb_pdf-Override
+    in ir_actions_report.py nie tatsächlich gerendert.
+    Muss aber existieren, damit ir.actions.report valide ist.
     -->
     <template id="report_carrier_label">
         <t t-call="web.html_container">
-            <!--
-                Minimales Placeholder-HTML.
-                Der eigentliche PDF-Inhalt wird durch den
-                postprocess_pdf_report-Override ersetzt.
-            -->
             <t t-foreach="docs" t-as="picking">
-                <div class="page">
-                    <p style="font-family: Arial; font-size: 10px; color: #aaa;">
-                        Versandetikett wird geladen...
-                    </p>
-                </div>
+                <div class="page"/>
             </t>
         </t>
     </template>
 
-    <!--
-    ir.actions.report:
-    - binding_type="report"  → erscheint unter "Drucken" (nicht "Aktion")
-    - binding_model_id       → gebunden an stock.picking
-    - binding_view_types     → nur im Formular
-    -->
     <record id="action_report_carrier_label" model="ir.actions.report">
         <field name="name">Versandetiketten</field>
         <field name="model">stock.picking</field>
