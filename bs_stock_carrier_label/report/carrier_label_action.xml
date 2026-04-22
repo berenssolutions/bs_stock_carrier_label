@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+    ============================================================
+    Papierformat: Versandetikett
+    ============================================================
+    DHL-Standard-Labels sind 105mm x 148mm (A6 / halbes A4).
+    Dieses Papierformat sorgt dafür, dass der Report ohne
+    unnötige Ränder gedruckt wird.
+
+    Für Thermal-Drucker (z.B. Zebra ZPL): Das Papierformat im
+    IoT-Drucker-Setup des Druckers direkt konfigurieren.
+    Das hier ist das Fallback-Format für normale Drucker/PDF-Export.
+    ============================================================
+    -->
+    <record id="paperformat_carrier_label" model="report.paperformat">
+        <field name="name">Versandetikett DHL (A6 / 105x148mm)</field>
+        <field name="default" eval="False"/>
+        <field name="format">custom</field>
+        <field name="page_width">105</field>
+        <field name="page_height">148</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">3</field>
+        <field name="margin_bottom">3</field>
+        <field name="margin_left">3</field>
+        <field name="margin_right">3</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">3</field>
+        <field name="dpi">150</field>
+    </record>
+
+    <!--
+    ============================================================
+    Papierformat dem Report zuweisen
+    ============================================================
+    Wir referenzieren den Report aus carrier_label_report.xml
+    und setzen das Papierformat nachträglich, damit die XML-Lade-
+    Reihenfolge (report.xml vor action.xml) korrekt ist.
+    ============================================================
+    -->
+    <record id="report_carrier_label_document" model="ir.actions.report">
+        <field name="paperformat_id" ref="paperformat_carrier_label"/>
+    </record>
+</odoo>
